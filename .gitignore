@@ -1,2 +1,10 @@
 /build/
 /dist/
+nbproject/private/
+build/
+nbbuild/
+nbdist/
+.nb-gradle/
+nbactions.xml
+nb-configuration.xml
+*.csv
