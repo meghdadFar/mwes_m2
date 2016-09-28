@@ -18,34 +18,26 @@ The compounds at the bottom of the list on the other hand are more substitutable
 Command Line Quick Start
 =======================================================
 
-The program can 
+The program can be used in two ways.
 
-After downloading the repository, in the command line, change directory to `dist/`
-Then run the following command: 
+1. To generate a ranked list of MWEs that are directly extracted from corpus.
 
-Here, path to the POS tagged corpus must be provided through "-p2corpus" option. 
-Other flags that are optional include:
+Here, path to the corpus in plain text that is segmented and tokenized must be provided through `-p2corpus` option. Other options that are optional include:
 
-`-maxRank` Indicates the top n ranked MWEs that will be returned. Defaul=200. 
+-maxRank Indicates the top n ranked MWEs that will be returned. Defaul=200.
 
-`-rc` Ranking criterion: delta_12, delta_21, or combined. Default = delta_21. 
-(for more information about the criteria see the article). 
+-rc Ranking criterion: delta_12, delta_21, or combined. Default = delta_21. (for more information about the criteria see the article).
 
-#### Example:
+Example:
 
-`java -cp dist/cui-mf-nlp-mwe-m1.jar unige.cui.meghdad.nlp.mwe1.Collocational_Bidirect_Prob_Corpus -p2corpus "PATH_2_POSTAGGED_CORPUS"`
+java -cp dist/cui-mf-nlp-mwe-m1.jar unige.cui.meghdad.nlp.mwe1.Collocational_Bidirect_Prob_Corpus -p2corpus "PATH_2_POSTAGGED_CORPUS"
 
+2. To rank a list of MWE candidates that are provided in an input file.
 
-### 2. To rank a list of MWE candidates that are provided in an input file. 
-
-Here, path to the list of POS tagged two-word candidates (through -p2POSTaggedCandidates), path to a list of all bigrams (through -p2bigrams) and all unigrams (through -p2unigrams) extracted from the corpus must be provided.
-Other flags that are optional include:
-
-`-rc` Ranking criteria: delta_12, delta_21, or combined. Default = delta_21.
 
 #### Example:
 
-`java -cp dist/cui-mf-nlp-mwe-m1.jar unige.cui.meghdad.nlp.mwe1.Collocational_Bidirect_Prob_File -p2POSTaggedCandidates "PATH_2_POSTAGGED_CANDIDATES" -p2bigrams "PATH_2_BIGRAMS" -p2unigrams "PATH_2_UNIGRAMS"`
+`java -Xmx5g -cp dist/cui-mf-nlp-mwe-m2.jar unige.cui.meghdad.nlp.mwe2.MAIN_File -p2wr "PATH_2_POSTAGGED_REPRESENTATIONS" -p2candidates "PATH_2_CANDIDATES" -p2corpus "PATH_2_CORPUS" -size 200`
 
 
 Contact:
