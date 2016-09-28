@@ -20,20 +20,21 @@ Command Line Quick Start
 
 The program can be used in two ways.
 
-1. To generate a ranked list of MWEs that are directly extracted from corpus.
+## 1. To generate a ranked list of MWEs that are directly extracted from corpus.
 
-Here, path to the corpus in plain text that is segmented and tokenized must be provided through `-p2corpus` option. Other options that are optional include:
+In progress. 
 
+## 2. To rank a list of MWE candidates that are provided in an input file.
+
+Required:
+Path to the corpus in plain text that is segmented and tokenized must be s[ecified through `-p2corpus` option. 
+Path to a list of word pairs must be specified through `-p2candidates` option.
+Path to a word representation file (w2v output format) must be specified through `-p2wr` option.
+Length of the word representations must be specified through size `-size` option.
+
+Optional:
+-rc Ranking criterion: m1, m2, or combined. Default = m2 (for more information about the criteria see the article).
 -maxRank Indicates the top n ranked MWEs that will be returned. Defaul=200.
-
--rc Ranking criterion: delta_12, delta_21, or combined. Default = delta_21. (for more information about the criteria see the article).
-
-Example:
-
-java -cp dist/cui-mf-nlp-mwe-m1.jar unige.cui.meghdad.nlp.mwe1.Collocational_Bidirect_Prob_Corpus -p2corpus "PATH_2_POSTAGGED_CORPUS"
-
-2. To rank a list of MWE candidates that are provided in an input file.
-
 
 #### Example:
 
