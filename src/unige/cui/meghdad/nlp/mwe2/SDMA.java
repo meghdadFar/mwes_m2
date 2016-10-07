@@ -55,6 +55,9 @@ public class SDMA {
             N += bigrams.get(s);
         }
 
+        System.out.println("N: "+N);
+        System.out.println("V: "+V);
+        
 
 
         Writer outfilef2f3f4Counts = null;
@@ -105,8 +108,6 @@ public class SDMA {
             String w2 = elements[1];
             String nc = w1 + " " + w2;
             
-            System.out.println(nc);
-            
             List<String> synSetofW1 = new ArrayList();
             List<String> synSetofW2 = new ArrayList();
 
@@ -129,7 +130,7 @@ public class SDMA {
                 if (!elements[i].toLowerCase().equals(w1.toLowerCase())) {
                     if (!elements[i].toLowerCase().equals(w1.toLowerCase() + "s")) {
 
-                        System.out.println(elements[i] + " " + unigrams.get(elements[i]));
+                       // System.out.println(elements[i] + " " + unigrams.get(elements[i]));
                         allw1primecount += unigrams.get(elements[i]);
 
                         synsetSizew1++;
@@ -140,18 +141,12 @@ public class SDMA {
                             String cand = elements[i] + " " + w2;
                             smoothingForf1++;                              
                             if (bigrams.containsKey(cand)) {
-
-                                //produce console output
-                                if (bigrams.get(cand) >= 100) {
-                                    //System.out.println(cand+" "+bigramsMap.get(cand));
-                                }
-
+                                
+                                
                                 founSynw1withw2 = founSynw1withw2 + bigrams.get(cand);
-
+                                
                             }
-
                             if (genOutput) {
-
                                 /*
                                  Comment 1 and uncomment 2 for creating anti-collocations without checkthing them against
                                  the corpus. Do the reverse to return only the anti-collocations that were observed in the corpus.
@@ -261,12 +256,11 @@ public class SDMA {
                 founSynw1withw2 += smoothingForf1;
                 founw1withSynw2 += smoothingForf2;
                 founSynw1withSynw2 += smoothingForf3;
-                if (genOutput) 
-                    outfilef2f3f4Counts.write(founSynw1withw2 + " " + founw1withSynw2 + " " + founSynw1withSynw2 + " " + unigrams.get(w1) + " " + unigrams.get(w2) + " " + allw1primecount + " " + allw2primecount + "\n");
-            } else {
-                if (genOutput) 
-                    outfilef2f3f4Counts.write(founSynw1withw2 + " " + founw1withSynw2 + " " + founSynw1withSynw2 + " " + unigrams.get(w1) + " " + unigrams.get(w2) + " " + allw1primecount + " " + allw2primecount + "\n");
+                
             }
+            if (genOutput) 
+                outfilef2f3f4Counts.write(founSynw1withw2 + " " + founw1withSynw2 + " " + founSynw1withSynw2 + " " + unigrams.get(w1) + " " + unigrams.get(w2) + " " + allw1primecount + " " + allw2primecount + "\n");
+
             /*
              The following part of the code, if uncommented, creates a file that contains the probability of each bigram
              This is a joint probability of w1w2. 
@@ -289,7 +283,7 @@ public class SDMA {
                     outfileEvalBigramProb.write(w1 + " " + w2 + " " + " " + count + " " + probOfBigram + "\n");
                 }
 
-                //if the bigram doesnt exist in the HashMap of all bigrams
+            //if the bigram doesnt exist in the HashMap of all bigrams
             } else {
 
                 int count = 0;
@@ -306,33 +300,54 @@ public class SDMA {
                 }
             }
 
+            
+            
+            
             if (model.equals("m1")) {
+
                 /*
-                 Smoothing condition already taken into account for numerator,
-                 so here, it is only calculated for the denuminator.
+                 If the alternatives were found in the corpus. If no alternative 
+                 is found, SDMA cannot be computed for this nc.
                  */
-                if (smoothing) {
-                    denumSDMA1 = founSynw1withw2 / (N + V);
+                if (founSynw1withw2 > 0) {
+                    /*
+                     Smoothing condition already taken into account for numerator,
+                     so here, it is only calculated for the denuminator.
+                     */
+                    if (smoothing) {
+                        denumSDMA1 = (double) founSynw1withw2/(N + V);
+                    } else {
+                        denumSDMA1 = (double) founSynw1withw2/N;
+                    }
+                    SDMA1 = Math.log(probOfBigram / denumSDMA1);
+                    candidatesSDMAs.put(nc, SDMA1);
+
                 } else {
-                    denumSDMA1 = founSynw1withw2 / N;
+                    System.out.println("SDMA cannot be calculated for " + nc);
                 }
-                SDMA1 = Math.log(probOfBigram / denumSDMA1);
-                candidatesSDMAs.put(nc, SDMA1);
+
             } else if (model.equals("m2")) {
                 /*
-                 Smoothing condition already taken into account for numerator
-                 so here, it is only calculated for the denuminator. 
+                 If the alternatives were found in the corpus. If no alternative 
+                 is found, SDMA cannot be computed for this nc.
                  */
-                if (smoothing) {
-                    denumSDMA2 = founw1withSynw2 / (N + V);
+                if (founw1withSynw2 > 0) {
+                    /*
+                     Smoothing condition already taken into account for numerator
+                     so here, it is only calculated for the denuminator. 
+                     */
+                    if (smoothing) {
+                        denumSDMA2 = (double) founw1withSynw2/(N + V);
+                    } else {
+                        denumSDMA2 = (double) founw1withSynw2/N;
+                    }
+                    SDMA2 = Math.log(probOfBigram / denumSDMA2);
+                    candidatesSDMAs.put(nc, SDMA2);
+                    //System.out.println(probOfBigram + " " + denumSDMA2 + " " + SDMA2);
+
                 } else {
-                    denumSDMA2 = founw1withSynw2 / N;
+                    System.out.println("SDMA cannot be calculated for " + nc);
                 }
-                SDMA2 = Math.log(probOfBigram / denumSDMA2);
-                candidatesSDMAs.put(nc, SDMA2);
-                
-                
-                System.out.println(SDMA2);
             }
         }
 

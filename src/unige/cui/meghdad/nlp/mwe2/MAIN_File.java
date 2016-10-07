@@ -68,7 +68,7 @@ public class MAIN_File {
         options.addOption("size", true, "Size/length of word representations.");
 
         //optional options:
-        options.addOption("m", true, "Model: m1 or m2.");
+        options.addOption("rc", true, "Model: m1 or m2.");
         options.addOption("maxRank", true, "Return MWEs up to this rank.");
 
         CommandLineParser parser = new DefaultParser();
@@ -92,8 +92,8 @@ public class MAIN_File {
             maxRank = Integer.parseInt(cmd.getOptionValue("maxRank"));
         }
         String model = "m2";
-        if (cmd.hasOption("m")) {
-            model = cmd.getOptionValue("m");
+        if (cmd.hasOption("rc")) {
+            model = cmd.getOptionValue("rc");
         }
         
         int rl = -1;
@@ -137,12 +137,14 @@ public class MAIN_File {
         //\\//\\//\\//\\//\\ end of related to KNN //\\//\\//\\//\\//\\
         
         System.out.println("Extracting 1-grams...");
-        HashMap<String, Integer> unigrams = T.ExtractUnigram(p2corpus, 1, true, true).get(0);
+        //ExtractUnigram(String p2corpus, int lexFreqThreshold, boolean isPosTagged, boolean ignoreCase)
+        HashMap<String, Integer> unigrams = T.ExtractUnigram(p2corpus, 1, false, true).get(0);
 
         System.out.println("Extracting 2-grams...");
-        HashMap<String, Integer> bigrams = T.ExtractNgrams(p2corpus, 1, 2, true, false, true);
-  
-
+        //ExtractNgrams(String p2corpus, int freqThreshold, int order, boolean isCorpusPosTagged, boolean outputPosTagged, boolean ignoreCase)
+        HashMap<String, Integer> bigrams = T.ExtractNgrams(p2corpus, 1, 2, false, false, true);
+        
+        
         System.out.println("Reading candidates...");
         BufferedReader candidateFile = new BufferedReader(
                 new InputStreamReader(
@@ -153,6 +155,11 @@ public class MAIN_File {
         //schneider
         ///Users/svm/Resources/DATA/WN-Syn-Based/LowerCased/SCH/instance_files/filt/instances_filt_pos.csv
         ///Users/svm/Resources/DATA/VGI/ac.nc.all.pos.txt
+        
+        
+        //TODO add exceptions when candidate list could not be created or is empty
+        //TODO add , to the pattern. so that candidates be split around comma or space not just space
+        //TODO make sure k is always > SYNSETSIZE (arg of nonSubFeatExtractConstituentDetails)
         
         
         /*
@@ -219,7 +226,7 @@ public class MAIN_File {
         Each index of lwNeighbors corresponds to the same index in avail_lw_forms. 
         */
         System.out.println("Executing knn exhustive search for the components of the candidates...");
-        List<List<Integer>>  lwNeighbors = knn.knnExhSearch(lw, M, 5);
+        List<List<Integer>>  lwNeighbors = knn.knnExhSearch(lw, M, 7);
         
 
 
@@ -270,7 +277,7 @@ public class MAIN_File {
             } else {
                 /*
                 The neighbors could not be retrieved for at least one of the components 
-                of this compound and therefore it will not be added to the return list. 
+                of this compound and therefore it will not be added to the return list.
                 */
             }
         }
