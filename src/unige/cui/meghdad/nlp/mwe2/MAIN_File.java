@@ -54,9 +54,10 @@ public class MAIN_File {
 
     public static void main(String[] args) throws ParseException, FileNotFoundException, IOException {
 
-        //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
-        //\\//\\//\\//\\//\\//\\  COMMAND LINE ARGUMENTS //\\//\\//\\//\\//\\//
-        //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\ 
+        //======================================================================
+        //======================  COMMAND LINE ARGUMENTS =======================
+        //======================================================================
+        
         //use apache commons CLI to parse command line arguments
         // create Options object
         Options options = new Options();
@@ -74,7 +75,7 @@ public class MAIN_File {
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);
 
-        //initialize options to default values and check required options are set
+        //initialize options to default values and check if the required options are set
         if (!cmd.hasOption("p2corpus")) {
             System.out.println("Path to the POS tagged corpus must be set.");
         }
@@ -104,8 +105,8 @@ public class MAIN_File {
             return;
         }
 
-        //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\\\//\\//\\//
-        //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
+        //======================================================================
+        //======================================================================
         
         
         String p2corpus = cmd.getOptionValue("p2corpus");
@@ -114,7 +115,7 @@ public class MAIN_File {
 
         Tools T = new Tools();  
         
-        //\\//\\//\\//\\//\\ related to KNN //\\//\\//\\//\\//\\
+        //=================== related to KNN ===================
         
         //create an instance of class ReadAndFilterWordRep
         System.out.println("Reading word representations...");
@@ -134,7 +135,7 @@ public class MAIN_File {
         //for vectors, use a List
         List<String> vectors = wordsVectors.get(1);
         
-        //\\//\\//\\//\\//\\ end of related to KNN //\\//\\//\\//\\//\\
+        //================ end of related to KNN ==================
         
         System.out.println("Extracting 1-grams...");
         //ExtractUnigram(String p2corpus, int lexFreqThreshold, boolean isPosTagged, boolean ignoreCase)
@@ -149,12 +150,6 @@ public class MAIN_File {
         BufferedReader candidateFile = new BufferedReader(
                 new InputStreamReader(
                         new FileInputStream(p2candidates), "UTF8"));
-
-        //farahmad
-        ///Users/svm/Resources/DATA/WN-Syn-Based/LowerCased/FAR/eval_farahmand/eval_instances_pos_avail.csv
-        //schneider
-        ///Users/svm/Resources/DATA/WN-Syn-Based/LowerCased/SCH/instance_files/filt/instances_filt_pos.csv
-        ///Users/svm/Resources/DATA/VGI/ac.nc.all.pos.txt
         
         
         //TODO add exceptions when candidate list could not be created or is empty
@@ -305,10 +300,7 @@ public class MAIN_File {
         System.out.println("Ranking the candidates...\n");
         for(Map.Entry<String,Double> e : entryList){
             System.out.println(e.getKey() + " "+ df.format(e.getValue()));   
-        }
-        
-        
-        
+        }   
     }
 
 }

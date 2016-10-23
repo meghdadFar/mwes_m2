@@ -16,13 +16,24 @@
  */
 package unige.cui.meghdad.nlp.mwe2;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.instrument.Instrumentation;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -34,7 +45,7 @@ import unige.cui.meghdad.knnsearch.Transform;
 import unige.cui.meghdad.toolkit.Tools;
 
 /**
- * Retrieves a list of MWEs from the corpus, ranked by their statistical idiosyncrasy 
+ * Ranks a list of candidate MWEs extracted from a corpus of text, by their statistical idiosyncrasy 
  * that is measured via Substitution-driven measures of Association (SDMAs).
  *
  * @author Meghdad Farahmand<meghdad.farahmand@gmail.com>
@@ -44,9 +55,10 @@ public class MAIN_Corpus {
 
     public static void main(String[] args) throws ParseException, FileNotFoundException, IOException {
 
-        //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
-        //\\//\\//\\//\\//\\//\\  COMMAND LINE ARGUMENTS //\\//\\//\\//\\//\\//
-        //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\ 
+        //======================================================================
+        //======================  COMMAND LINE ARGUMENTS =======================
+        //======================================================================
+        
         //use apache commons CLI to parse command line arguments
         // create Options object
         Options options = new Options();
@@ -54,9 +66,10 @@ public class MAIN_Corpus {
         //required options:
         options.addOption("p2corpus", true, "Path 2 POS tagged corpus.");
         options.addOption("p2wr", true, "Path 2 word representations.");
+        options.addOption("size", true, "Size/length of word representations.");
 
         //optional options:
-        options.addOption("rc", true, "Ranking criteria: delta_12, delta_21, or combined.");
+        options.addOption("rc", true, "Model: m1 or m2.");
         options.addOption("maxRank", true, "Return MWEs up to this rank.");
 
         CommandLineParser parser = new DefaultParser();
@@ -64,23 +77,31 @@ public class MAIN_Corpus {
 
         //initialize options to default values and check required options are set
         if (!cmd.hasOption("p2corpus")) {
-            System.out.println("Path to the POS tagged corpus must be set.");
+            System.out.println("Path to the POS tagged corpus must be specified.");
         }
         if (!cmd.hasOption("p2wr")) {
             System.out.println("A valid word representation must be specified.");
             return;
         }
-        String rc = "21";
-        if (cmd.hasOption("rc")) {
-            rc = cmd.getOptionValue("rc");
-        }
+        
         int maxRank = 200;
         if (cmd.hasOption("maxRank")) {
-            rc = cmd.getOptionValue("maxRank");
+            maxRank = Integer.parseInt(cmd.getOptionValue("maxRank"));
         }
-
-        //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\\\//\\//\\//
-        //\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\//\\
+        String model = "m2";
+        if (cmd.hasOption("rc")) {
+            model = cmd.getOptionValue("rc");
+        }
+        
+        int rl = -1;
+        if (cmd.hasOption("size")) {
+            rl = Integer.parseInt(cmd.getOptionValue("size"));
+        }else{
+            System.out.println("Size/length of word representations must be specified.");
+            return;
+        }
+        //======================================================================
+        //======================================================================
         
         
         String p2corpus = cmd.getOptionValue("p2corpus");
@@ -88,7 +109,7 @@ public class MAIN_Corpus {
 
         Tools T = new Tools();  
         
-        //\\//\\//\\//\\//\\ related to KNN //\\//\\//\\//\\//\\
+        //=================== related to KNN ===================
         
         //create an instance of class ReadAndFilterWordRep
         System.out.println("Reading word representations...");
@@ -96,7 +117,7 @@ public class MAIN_Corpus {
 
         //word2vec output entries are unique, so the following lists are going 
         //to be lists of unique vectors (with no duplicate)
-        List<List<String>> wordsVectors = rv.rfwr(p2wr,100);
+        List<List<String>> wordsVectors = rv.rfwr(p2wr,rl);
         
         HashMap<String,Integer> words = new HashMap<>();
 
@@ -108,18 +129,36 @@ public class MAIN_Corpus {
         //for vectors, use a List
         List<String> vectors = wordsVectors.get(1);
         
-        //\\//\\//\\//\\//\\ end of related to KNN //\\//\\//\\//\\//\\
+        //================ end of related to KNN ==================
+
         
         System.out.println("Extracting 1-grams...");
-        HashMap<String, Integer> unigrams = T.ExtractUnigram(p2corpus, 1, true, true).get(0);
+        //ExtractUnigram(String p2corpus, int lexFreqThreshold, boolean isPosTagged, boolean ignoreCase)
+        HashMap<String, Integer> unigrams = T.ExtractUnigram(p2corpus, 1, false, true).get(0);
 
         System.out.println("Extracting 2-grams...");
-        HashMap<String, Integer> bigrams = T.ExtractNgrams(p2corpus, 1, 2, true, false, true);
-
-        System.out.println("Extracting a set of \"nn-nn\" candidates...");
-        LinkedHashMap<String, Integer> candidates = new LinkedHashMap<>(T.extractNCs(p2corpus, "nn-nn", true, false, 50));
+        //ExtractNgrams(String p2corpus, int freqThreshold, int order, boolean isCorpusPosTagged, boolean outputPosTagged, boolean ignoreCase)
+        HashMap<String, Integer> bigrams = T.ExtractNgrams(p2corpus, 1, 2, false, false, true);
         
-        //TODO break the list of candidates into their components
+        
+        
+        //TODO add exceptions when candidate list could not be created or is empty
+        //TODO add , to the pattern. so that candidates be split around comma or space not just space
+        //TODO make sure k is always > SYNSETSIZE (arg of nonSubFeatExtractConstituentDetails)
+        
+        
+        /*
+        Since at this point no frequency information is needed, I put the candidates in 
+        a HashSet instead of a HashMap. 
+        */
+        
+        System.out.println("Extracting a set of \"nn-nn\" candidates...");
+        HashSet<String> candidates = new HashSet<String>(T.extractNCs(p2corpus, "nn-nn", true, false, 50).keySet());
+        
+        
+        
+        
+        
         
         /*
         The map of compounds must be broken into a list of words (I)
@@ -127,43 +166,50 @@ public class MAIN_Corpus {
         Then in II, this the compounds will be reconstructed, this time together 
         with their neighbors. 
         */
-        
         String[] wis;
         List<String> avail_lw_Rep = new ArrayList<>();
         List<String> avail_lw_forms = new ArrayList<>();
         //(I)
-        for(String c : candidates.keySet()){
+        for(String c : candidates){
             wis = c.split(" ");
             for (String w : wis) {
 
                 if (words.containsKey(w)) {
                     int index_of_l = words.get(w);
-                    avail_lw_Rep.add(vectors.get(index_of_l));
-                    avail_lw_forms.add(w);
+                    
+                    if(!avail_lw_forms.contains(w)){
+                        avail_lw_Rep.add(vectors.get(index_of_l));
+                        avail_lw_forms.add(w);
+                    }
                 } else {
                     System.out.println("Vector representation for\" " + c + "\" is not availble. Skipping this entry.");
                 }
             }
         }
+           
         
         //Find nearest neighbors:
         //create an instance of Transform class
-        Transform m = new Transform();
+        Transform Tr = new Transform();
         //transform the representations (avail_lw_Rep) of avail_lw_forms from string to double
-        List<List<Double>> M = m.createFromList(vectors, 100);
-        List<List<Double>> lw = m.createFromList(avail_lw_Rep, 100);
+        System.out.println("Transforming word representations from String to Double");
+        List<List<Double>> M = Tr.createFromList(vectors, rl);
+        List<List<Double>> lw = Tr.createFromList(avail_lw_Rep, rl);
+        
+        
         
         //create an instance of KNN class
         KNN knn = new KNN();
-        //invoke Knn exhustive search
         
         /*
         lwNeighbors contains a list of indices pointing to the neighbors
         for each word in avail_lw_forms. lwNeighbors and avail_lw_forms have the same size. 
         Each index of lwNeighbors corresponds to the same index in avail_lw_forms. 
         */
+        System.out.println("Executing knn exhustive search for the components of the candidates...");
+        List<List<Integer>>  lwNeighbors = knn.knnExhSearch(lw, M, 7);
         
-        List<List<Integer>>  lwNeighbors = knn.knnExhSearch(lw, M, 5);
+
 
         //(II)
         /*
@@ -171,9 +217,7 @@ public class MAIN_Corpus {
         - Split each candidate into its components. 
         - Check if both those two components are found in avail_lw_forms, i.e., for both
           of the components a vector representation was found, then write it to results. 
-        
         */
-        
         //compounds and the neighbors for each component of the compound.
         List<String> compoundAndComponNeighbors = new ArrayList<>();
         /*
@@ -181,8 +225,11 @@ public class MAIN_Corpus {
         format:
         vehicle,wrap,vehicle,vehicles,truck,car,airbag,gear,semi-trailer,wrap,wrapping,wrapped,wraps,glued,stitched,sewn
         */
+        System.out.println("Constructing candidate list with neighbors...");
         String entry = "";
-        for (String c : candidates.keySet()) {
+        
+        for (String c : candidates) {
+        
             wis = c.split(" ");
             /*
              If both of the components of the compound had representation (and hence 
@@ -190,23 +237,59 @@ public class MAIN_Corpus {
              compoundAndComponNeighbors
              */
             if (avail_lw_forms.contains(wis[0]) && avail_lw_forms.contains(wis[1])) {
-                entry.concat(wis[0]).concat(",").concat(wis[1]).concat(",");
+                entry = wis[0].concat(",").concat(wis[1]).concat(",");
+                
                 List<Integer> w1Neighbors = lwNeighbors.get(avail_lw_forms.indexOf(wis[0]));
                 for (int neighbInd : w1Neighbors) {
-                    entry.concat(wordsVectors.get(0).get(neighbInd)).concat(",");
+                    entry = entry.concat(wordsVectors.get(0).get(neighbInd)).concat(",");
                 }
                 List<Integer> w2Neighbors = lwNeighbors.get(avail_lw_forms.indexOf(wis[1]));
+                //counter to identify the last neighbor (to avoid adding a trailing comma)
+                int co = 0;
                 for (int neighbInd : w2Neighbors) {
-                    entry.concat(wordsVectors.get(0).get(neighbInd)).concat(",");
+                    entry = entry.concat(wordsVectors.get(0).get(neighbInd));
+                    if(co < w2Neighbors.size()-1){
+                        entry = entry.concat(",");
+                        co++;
+                    }
                 }
                 compoundAndComponNeighbors.add(entry);
+                entry = "";
             } else {
                 /*
                 The neighbors could not be retrieved for at least one of the components 
-                of this compound and therefore it will not be added to the return list. 
+                of this compound and therefore it will not be added to the return list.
                 */
             }
         }
+        
+        /*
+        Run SDMA.nonSubFeatExtractConstituentDetails to calculate SDMAs for each one of the candidates. 
+        */
+        System.out.println("Calculating SDMAs...");
+        SDMA sdma = new SDMA();
+        HashMap<String, Double> sdmaScores = sdma.nonSubFeatExtractConstituentDetails(compoundAndComponNeighbors, bigrams, unigrams, 5, 7, model,true,true);
+        
+        //sort (descending) candidates by their score:
+        List<Map.Entry<String,Double>> entryList = new ArrayList<Map.Entry<String,Double>>(sdmaScores.entrySet());
+        
+        Collections.sort(entryList, new Comparator<Map.Entry<String,Double>>() {
+            @Override
+            public int compare(Map.Entry<String, Double> e1,
+                    Map.Entry<String, Double> e2) {
+                return -1*e1.getValue().compareTo(e2.getValue());
+            }
+        });
+        
+        //print the results:
+        DecimalFormat df = new DecimalFormat("0.000");
+        System.out.println("Ranking the candidates...\n");
+        for(Map.Entry<String,Double> e : entryList){
+            System.out.println(e.getKey() + " "+ df.format(e.getValue()));   
+        }
+        
+        
+        
     }
 
 }
