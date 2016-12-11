@@ -22,23 +22,35 @@ The program can be used in two ways.
 
 ## 1. To generate a ranked list of MWEs that are directly extracted from corpus.
 
-In progress. 
-
-## 2. To rank a list of MWE candidates that are provided in an input file.
-
-Required:
-Path to the corpus in plain text that is segmented and tokenized must be s[ecified through `-p2corpus` option. 
-Path to a list of word pairs must be specified through `-p2candidates` option.
+Required flags:
+Path to the corpus in plain text that is segmented and tokenized must be specified through `-p2corpus` option.
 Path to a word representation file (w2v output format) must be specified through `-p2wr` option.
 Length of the word representations must be specified through size `-size` option.
 
-Optional:
--rc Ranking criterion: m1, m2, or combined. Default = m2 (for more information about the criteria see the article).
+Optional flags:
+-rc Ranking criterion: SDMA1, SDMA2. Default = m2 (for more information about the criteria see the article).
 -maxRank Indicates the top n ranked MWEs that will be returned. Defaul=200.
 
 #### Example:
 
-`java -Xmx5g -cp dist/cui-mf-nlp-mwe-m2.jar unige.cui.meghdad.nlp.mwe2.MAIN_File -p2wr "PATH_2_POSTAGGED_REPRESENTATIONS" -p2candidates "PATH_2_CANDIDATES" -p2corpus "PATH_2_CORPUS" -size 200`
+`java -Xmx5g -cp dist/cui-mf-nlp-mwe-m2.jar unige.cui.meghdad.nlp.mwe2.MAIN_Corpus -p2corpus "PATH_2_CORPUS" -p2wr "PATH_2_POSTAGGED_REPRESENTATIONS" -size 200`
+
+
+## 2. To rank a list of MWE candidates that are provided in an input file.
+
+Required flags:
+Path to the corpus in plain text that is segmented and tokenized must be specified through `-p2corpus` option. 
+Path to a list of word pairs must be specified through `-p2candidates` option.
+Path to a word representation file (w2v output format) must be specified through `-p2wr` option.
+Length of the word representations must be specified through size `-size` option.
+
+Optional flags:
+-rc Ranking criterion: SDMA1, SDMA2. Default = m2 (for more information about the criteria see the article).
+-maxRank Indicates the top n ranked MWEs that will be returned. Defaul=200.
+
+#### Example:
+
+`java -Xmx5g -cp dist/cui-mf-nlp-mwe-m2.jar unige.cui.meghdad.nlp.mwe2.MAIN_File -p2corpus "PATH_2_CORPUS" -p2wr "PATH_2_POSTAGGED_REPRESENTATIONS" -p2candidates "PATH_2_CANDIDATES" -size 200`
 
 
 Contact:
