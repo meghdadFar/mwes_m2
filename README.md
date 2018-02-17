@@ -1,5 +1,5 @@
-# mwes_m2
-Java implementation of an MWE identification method (only two word noun compound category) based on Substitution Driven Measures of Association (SDMAs).
+Java implementation of Substitution Driven Measures of Association (SDMAs) presented in Chapter 4, Section 4.3.4 of PhD dissertation [Computational Models of Learning the Idiosyncrasy of Multiword Expressions](https://archive-ouverte.unige.ch/unige:96989)
+
 
 Introduction:
 =======================================================
