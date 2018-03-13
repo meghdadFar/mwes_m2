@@ -9,3 +9,4 @@ nb-configuration.xml
 *.csv
 target/
 project_output/
+.idea/
